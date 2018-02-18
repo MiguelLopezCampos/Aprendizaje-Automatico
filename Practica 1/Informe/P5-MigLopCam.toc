@@ -1,0 +1,9 @@
+\select@language {spanish}
+\contentsline {section}{\numberline {1}Cuesti\IeC {\'o}n 1: Modificaci\IeC {\'o}n de valores del kernel permanentemente}{3}
+\contentsline {section}{\numberline {2}Cuesti\IeC {\'o}n 2: Mostrar par\IeC {\'a}metros modificables en tiempo de ejecuci\IeC {\'o}n y descripci\IeC {\'o}n de algunos}{3}
+\contentsline {section}{\numberline {3}Cuesti\IeC {\'o}n 3: Copia de seguridad de registro y restauraci\IeC {\'o}n del mismo}{4}
+\contentsline {section}{\numberline {4}Cuesti\IeC {\'o}n 4: Abrir consola en Windows y modificar un registro}{5}
+\contentsline {section}{\numberline {5}Cuesti\IeC {\'o}n 5: Tipos de los caracteres y valores num\IeC {\'e}ricos del registro de Windows}{6}
+\contentsline {section}{\numberline {6}Cuesti\IeC {\'o}n 6: Mejoras apache e IIS para Moodle}{7}
+\contentsline {section}{\numberline {7}Cuesti\IeC {\'o}n 7: Ajuste compresi\IeC {\'o}n en IIS}{8}
+\contentsline {section}{\numberline {8}Cuesti\IeC {\'o}n 8: Mejora de un servicio y monitorizaci\IeC {\'o}n del mismo}{9}

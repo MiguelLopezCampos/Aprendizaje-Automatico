@@ -1,0 +1,249 @@
+---
+title: "ProyectoFinal"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(glmnet)
+library(e1071)
+set.seed(1)
+```
+## 1.- Definición del problema a resolver y enfoque elegido
+
+## 2.- Codificación de los datos de entrada para hacerlos útiles a los algoritmos.
+
+Creo un vector con los nombres de cada columna para agregárselo a cada data.frame.
+
+Imprimo los valores de los niveles de factor en la etiqueta de cada base de datos, ya que al principio me he rallado un poco porque las 6 bases de datos son exactamente iguales y lo único que var�?a son las etiquetas. Al final he deducido que los pacientes son los mismos en las 6 bases de datos (hay más pero todav�?a no las he mirado, las que mas confianza me han dado han sido éstas), pero cada base de datos tiene una etiqueta diferente, supongo que se trata de predecir con los mismos datos 6 propiedades diferentes de la enfermedad.
+``` {r}
+getInvalidCols <- function (data) {
+  invalids <- c()
+  for (i in 1:ncol(data))
+    if (length(levels(as.factor(as.character(data[,i])))) < 2)
+      invalids <- c(invalids, i)
+  return(invalids)
+}
+
+
+getVariablesRelevantesLASSO <- function(data, label, umbral = 0.002) {
+  mat <- data.matrix(data)
+  cv.lasso <- cv.glmnet(mat, c(label), family = "gaussian", alpha = 1)
+  plot(cv.lasso)
+  lambda <- cv.lasso$lambda.min
+  print(paste("El lambda que minimiza el error es", lambda))
+  res.lasso <- glmnet(mat, c(label), family = "gaussian", alpha = 1)
+  pesos <- predict(res.lasso, type = "coefficients", s = lambda)
+  print(pesos)
+  relevantes <- which(abs(pesos)[2:length(pesos)] >= umbral)
+  return (relevantes)
+}
+```
+
+Conjunto de datos de entrenamiento
+
+```{r}
+data.train.bp <- read.csv("./data/allbp.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.train.hyper <- read.csv("./data/allhyper.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.train.hypo <- read.csv("./data/allhypo.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.train.rep <- read.csv("./data/allrep.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.train.dis <- read.csv("./data/dis.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.train.sick <- read.csv("./data/sick.data.txt", header=FALSE, na.strings="?", comment.char = "|")
+```
+
+Conjunto de datos de test
+
+```{r}
+data.test.bp <- read.csv("./data/allbp.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.test.hyper <- read.csv("./data/allhyper.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.test.hypo <- read.csv("./data/allhypo.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.test.rep <- read.csv("./data/allrep.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.test.dis <- read.csv("./data/dis.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+data.test.sick <- read.csv("./data/sick.test.txt", header=FALSE, na.strings="?", comment.char = "|")
+```
+
+## 3.- Valoración del interés de la variables para el problema y selección de un subconjunto (en su caso).
+
+```{r}
+nombres <- c("age", "sex", "on thyroxine", "query on thyroxine", "on antithyroid medication",
+             "sick", "pregnant", "thyroid surgery", "I131 treatment", "query hypothyroid",
+             "query hyperthyroid", "lithium", "goitre", "tumor", "hypopituitary", "psych",
+             "TSH measured", "TSH", "T3 measured", "T3", "TT4 measured", "TT4", "T4U measured",
+             "T4U", "FTI measured", "FTI", "TBG measured", "TBG", "referral source", "bp",
+             "hyper", "hypo",
+             "rep", "dis", "sick")
+
+
+data.train.clean <- cbind(data.train.bp, data.train.hyper[,ncol(data.train.hyper)],
+                    data.train.hypo[,ncol(data.train.hypo)], data.train.rep[,ncol(data.train.rep)],
+                    data.train.dis[,ncol(data.train.dis)], data.train.sick[,ncol(data.train.sick)])
+
+
+colnames(data.train.clean) <- nombres
+data.test.clean <- cbind(data.test.bp, data.test.hyper[,ncol(data.test.hyper)],
+                    data.test.hypo[,ncol(data.test.hypo)], data.test.rep[,ncol(data.test.rep)],
+                    data.test.dis[,ncol(data.test.dis)], data.test.sick[,ncol(data.test.sick)])
+
+
+colnames(data.test.clean) <- nombres
+
+invalidCols <- unique(c(getInvalidCols(data.train.clean), getInvalidCols(data.test.clean)))
+
+
+if (!is.null(invalidCols)) {
+  data.train.clean <- data.train.clean[,-invalidCols]
+  data.test.clean <- data.test.clean[,-invalidCols]
+}
+#Para intentar mejorar el modelo anterior, en vez de eliminar los datos
+#con missing values, los sustituiremos por el promedio de estas variables en el data set de
+#training. Crearemos un dataframe
+data.aux <- na.omit(data.train.clean)
+means <- sapply(matrix(data.aux), mean)
+
+
+#Ahora iremos mirando dato a dato si tiene alg�n NA y en el caso de que lo tenga,
+#lo cambiaremos por el promedio
+repararDatos <- function(datos, medias)
+{  
+  for(i in 1:nrow(data.train.clean))
+  {
+    for(j in 1:ncol(datos))
+    {
+      if(is.na(datos[i,j]))
+      {
+        datos[i,j] <- medias[j]
+      }
+    }
+  }
+  
+  return (datos)
+}
+
+
+#Ahora, si nos sigue quedando alg�n NA m�s, entonces esos datos ya los omitimos
+data.train.clean <- repararDatos(data.train.clean, means)
+data.test.clean <- repararDatos(data.test.clean, means)
+
+
+
+data.train.clean <- na.omit(data.train.clean)
+data.test.clean <- na.omit(data.test.clean)
+
+print (data.train.clean$age[data.train.clean$age > 100])
+data.train.clean <- data.train.clean[data.train.clean$age < 100,]
+data.test.clean<- data.test.clean[data.test.clean$hyper != 'secondary toxic.',]
+data.test.clean$hyper <- as.factor(as.numeric(data.test.clean$hyper))
+levels(data.test.clean$hyper) <- levels(data.train.clean$hyper)
+levels(data.test.clean$hypo) <- levels(data.train.clean$hypo)
+end <- ncol(data.train.clean)
+ini <- end - 5
+label.train <- data.train.clean[ini:end]
+data.train.clean <- data.train.clean[-(ini:end)]
+label.test <- data.test.clean[ini:end]
+data.test.clean <- data.test.clean[-(ini:end)]
+
+
+
+invalidCols <- unique(c(getInvalidCols(data.train.clean), getInvalidCols(data.test.clean)))
+if (!is.null(invalidCols)) {
+  data.train.clean <- data.train.clean[,-invalidCols]
+  data.test.clean <- data.test.clean[,-invalidCols]
+}
+```
+
+```{r}
+relevantes.bp <- getVariablesRelevantesLASSO(data.train.clean, label.train$bp)
+print(colnames(data.train.clean)[relevantes.bp])
+relevantes.hyper <- getVariablesRelevantesLASSO(data.train.clean, label.train$hyper)
+print(colnames(data.train.clean)[relevantes.hyper])
+relevantes.hypo <- getVariablesRelevantesLASSO(data.train.clean, label.train$hypo)
+print(colnames(data.train.clean)[relevantes.hypo])
+relevantes.rep <- getVariablesRelevantesLASSO(data.train.clean, label.train$rep)
+print(colnames(data.train.clean)[relevantes.rep])
+relevantes.dis <- getVariablesRelevantesLASSO(data.train.clean, label.train$dis)
+print(colnames(data.train.clean)[relevantes.dis])
+relevantes.sick <- getVariablesRelevantesLASSO(data.train.clean, label.train$sick)
+print(colnames(data.train.clean)[relevantes.sick])
+```
+
+## 4.- Normalización de las variables (en su caso)
+
+```{r}
+data.train.normalizado <- data.frame(lapply(data.train.clean,
+                    function(col){if (is.numeric(col))
+                                    return ((col-min(col))/(max(col)-min(col)))
+                                  else return (col)}))
+data.test.normalizado <- data.frame(lapply(data.test.clean,
+                    function(col){if (is.numeric(col))
+                                    return ((col-min(col))/(max(col)-min(col)))
+                                  else return (col)}))
+```
+
+## 5.- Selección de las técnica (parámetrica) y valoración de la idoneidad de la misma frente a otras alternativas
+
+## 6.- Aplicación de la técnica especificando claramente que algoritmos se usan en la estimación de los parámetros, los hiperparámetros y el error de generalización.
+
+```{r}
+modeloSVM <- function(tune.out, kernel, data, label) {
+  bestMod <- tune.out$best.model
+  print(paste("cost:", bestMod$cost))
+  print(paste("gamma:", bestMod$gamma))
+  print(paste("Número de vectores soporte:", bestMod$tot.nSV))
+  pred <- predict(bestMod, data)
+  print("Matriz de confusión:")
+  print(table(predict = pred, truth = label))
+  error.svm <- sum(pred != label)/length(label)
+  print (paste("El error Ein en SVM con kernel", kernel, "es", error.svm))
+}
+dat <- data.frame(x = data.train.clean[,relevantes.bp], y = label.train$bp)
+tune.out.linear.bp <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.bp, "lineal", dat, dat$y)
+dat <- data.frame(x = data.train.clean[,relevantes.hyper], y = label.train$hyper)
+tune.out.linear.hyper <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.hyper, "lineal", dat, label.train$hyper)
+dat <- data.frame(x = data.train.clean[,relevantes.hypo], y = label.train$hypo)
+tune.out.linear.hypo <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.hypo, "lineal", dat, label.train$hypo)
+dat <- data.frame(x = data.train.clean[,relevantes.rep], y = label.train$rep)
+tune.out.linear.rep <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.rep, "lineal", dat, label.train$rep)
+dat <- data.frame(x = data.train.clean[,relevantes.dis], y = label.train$dis)
+tune.out.linear.dis <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.dis, "lineal", dat, label.train$dis)
+dat <- data.frame(x = data.train.clean[,relevantes.sick], y = label.train$sick)
+tune.out.linear.sick <- tune(svm, y~., data = dat, kernel = "linear", type = "C-classification",
+                           ranges = list(cost = c(1e-3, 1e-2, 1e-1, 1, 5, 10, 50, 100)))
+modeloSVM(tune.out.linear.sick, "lineal", dat, label.train$sick)
+```
+
+## 7.- Argumentar sobre la idoneidad de la función regularización usada (en su caso)
+
+## 8.- Valoración de los resultados ( gráficas, métricas de error, análisis de residuos, etc )
+
+```{r}
+getError <- function(data.train, data.test, label.train, label.test, tune.out, relevantes) {
+  dat <- data.frame(x = data.train[,relevantes], y = label.train)
+  test <- data.frame(x = data.test[,relevantes], y = label.test)
+  modelo <- svm(y~., data = dat, kernel = "linear", type = "C-classification",
+  cost = tune.out$best.model$cost)
+  pred <- predict(modelo, dat)
+  ein <- sum(pred != dat$y)/nrow(dat)
+  pred <- predict(modelo, test)
+  eout<- sum(pred != test$y)/nrow(test)
+  return (c(ein, eout))
+}
+print(getError(data.train.clean, data.test.clean, label.train$bp, label.test$bp, tune.out.linear.bp, relevantes.bp))
+print(getError(data.train.clean, data.test.clean, label.train$hyper, label.test$hyper, tune.out.linear.hyper, relevantes.hyper))
+print(getError(data.train.clean, data.test.clean, label.train$hypo, label.test$hypo, tune.out.linear.hypo, relevantes.hypo))
+print(getError(data.train.clean, data.test.clean, label.train$rep, label.test$rep, tune.out.linear.rep, relevantes.rep))
+print(getError(data.train.clean, data.test.clean, label.train$dis, label.test$dis, tune.out.linear.dis, relevantes.dis))
+print(getError(data.train.clean, data.test.clean, label.train$sick, label.test$sick, tune.out.linear.sick, relevantes.sick))
+```
+
+## 9.- Justificar que se ha obtenido la mejor de las posibles soluciones con la técnica elegida y la muestra dada. Argumentar en términos de la dimensión VC del modelo, el error de generalización y las curvas de aprendizaje. 

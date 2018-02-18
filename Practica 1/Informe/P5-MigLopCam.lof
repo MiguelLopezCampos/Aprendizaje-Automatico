@@ -1,0 +1,24 @@
+\select@language {spanish}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Ejecuci\IeC {\'o}n de sysctl -a}}{3}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Parte de los resultados de ejecutar sysctl -a}}{3}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Seleccionamos que queremos una configuraci\IeC {\'o}n personal (custom)}}{4}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Seleccionamos que queremos hacer backup del estado del sistema}}{4}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Seleccionamos frecuencia con la que queremos que se haga backup}}{4}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Seleccionamos ubicaci\IeC {\'o}n de la copia de seguridad}}{5}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Indicamos que la copia de seguridad est\IeC {\'a} en otra localizaci\IeC {\'o}n}}{5}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Seleccionamos la fecha y hora del backup que deseamos restaurar}}{5}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Abrimos Run}}{5}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Despu\IeC {\'e}s de ejecutar cmd ya tenemos nuestra consola de comandos}}{6}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Ejemplo de edici\IeC {\'o}n del registro}}{6}
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Seleccionamos compresi\IeC {\'o}n}}{8}
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Configuramos la compresi\IeC {\'o}n}}{8}
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Abrimos las herramientas para desarrolladores en Chrome}}{8}
+\contentsline {figure}{\numberline {7.4}{\ignorespaces Resultado de abrir nuestro sitio web con la herramienta para desarrolladores}}{8}
+\contentsline {figure}{\numberline {7.5}{\ignorespaces Comprobamos que funciona la compresi\IeC {\'o}n}}{8}
+\contentsline {figure}{\numberline {7.6}{\ignorespaces Comprobamos que funciona la compresi\IeC {\'o}n 2}}{9}
+\contentsline {figure}{\numberline {8.1}{\ignorespaces Ejecuci\IeC {\'o}n ab sobre nuestro servidor IIS sin mejoras (1)}}{9}
+\contentsline {figure}{\numberline {8.2}{\ignorespaces Ejecuci\IeC {\'o}n ab sobre nuestro servidor IIS sin mejoras (2)}}{9}
+\contentsline {figure}{\numberline {8.3}{\ignorespaces Configuramos el output caching}}{9}
+\contentsline {figure}{\numberline {8.4}{\ignorespaces Configuraci\IeC {\'o}n del output caching}}{9}
+\contentsline {figure}{\numberline {8.5}{\ignorespaces Ejecuci\IeC {\'o}n ab sobre nuestro servidor IIS con las mejoras (1)}}{9}
+\contentsline {figure}{\numberline {8.6}{\ignorespaces Ejecuci\IeC {\'o}n ab sobre nuestro servidor IIS con las mejoras (2)}}{9}

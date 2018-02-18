@@ -1,0 +1,293 @@
+\input{preambulo.tex}
+\begin{document}
+\title{	
+\normalfont \normalsize 
+\textsc{{\bf Ingeniería de Servidores (2015-2016)} \\ Grado en Ingeniería Informática \\ Universidad de Granada} \\ [25pt] % Your university, school and/or department name(s)
+\horrule{0.5pt} \\[0.4cm] % Thin top horizontal rule
+\huge Memoria Práctica 5 \\ % The assignment title
+\horrule{2pt} \\[0.5cm] % Thick bottom horizontal rule
+}
+
+
+\author{Miguel López Campos} % Nombre y apellidos
+
+\date{\normalsize\today} % Incluye la fecha actual
+%----------------------------------------------------------------------------------------
+% DOCUMENTO
+%----------------------------------------------------------------------------------------
+
+
+	
+	\maketitle % Muestra el Título
+	\newpage %inserta un salto de página
+	
+	\tableofcontents % para generar el índice de contenidos
+	\listoffigures
+
+	
+	\newpage
+	
+	\
+	
+	\section{Cuestión 1: Modificación de valores del kernel permanentemente}
+	Para que los cambios se realicen permanentemente hay que modificar el fichero /etc/sysctl.conf, añadiendo la línea con la variable que queremos modificar así como su valor \footnote{ http://web.mit.edu/rhel-doc/4/RH-DOCS/rhel-rg-es-4/s1-proc-sysctl.html}.
+	\\
+	Podemos hacerlo de la siguiente manera (en mi ejemplo el parámetro que modifico es el nombre del host):
+	\\
+	\textbf{'echo "kernel.hostname=miequipo" >> /etc/sysctl.conf   \&\&  sysctl -p'}
+	\\
+	\\
+	
+	Lo que hace que de esta manera se mantengan los cambios al reiniciar el sistema es el hecho de que al iniciarse el sistema se ejecuta un script que ejecuta sysctl usando los valores de sysctl.conf (el fichero que hemos modificado).
+	
+	\section{Cuestión 2: Mostrar parámetros modificables en tiempo de ejecución y descripción de algunos}
+	Para mostrar todos los parámetros \footnote{Manual sysctl Ubuntu} modificables en tiempo de ejecución usamos la opción –a (ver figuras  2.1 y 2.2). Lo que hacemos es hacer que el resultado de sysctl –a tome como salida un fichero (llamado en mi caso holae.txt)  y después lo abro con gedit para ver el resultado, que son todos los parámetros modificables en tiempo de ejecución.
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura21}
+	\caption{Ejecución de sysctl -a}
+	\label{fig:figura21}
+	\end{figure}
+
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura22}
+	\caption{Parte de los resultados de ejecutar sysctl -a}
+	\label{fig:figura22}
+	\end{figure}
+	
+	Un parámetro interesante es por ejemplo \textbf{kernel.panic} \footnote{https://www.kernel.org/doc/Documentation/kernel-parameters.txt}. Este parámetro lo que hace es que cuando se produce un error interno en el sistema (un ‘panic’), este se reinicie después del tiempo indicado al parámetro. Por ejemplo, si ponemos kernel.panic = 5, después de 5 segundos del error interno, el sistema se reiniciará. Si es 0, no hará nada.
+	\\
+	
+	Otro parámetro es \textbf{kernel.pid\_max} \footnote{https://www.kernel.org/doc/Documentation/sysctl/kernel.txt}. Este parámetro lo que hace es indicar cuál es el valor máximo para un PID. Si a un proceso le tocara un PID mayor o igual que este valor, lo que pasaría es que se le asignaría otro valor que sí esté en el rango indicado.
+	
+	\section{Cuestión 3: Copia de seguridad de registro y restauración del mismo}
+	Para hacer la copia de seguridad y la restauración seguiré las instrucciones de [\footnote{https://technet.microsoft.com/en-us/library/cc758453(v=ws.10).aspx}] . Primero lo que hago es abrir Windows Server Backup para realizar la copia de seguridad. Una vez abierto, hago click sobre Action -> Backup Schedule . Nos aparecerá una ventana nueva y pulsamos siguiente. Después nos aparecerá la ventana de la figura 3.1 y marcaremos la opción Custom, para elegir de qué queremos hacer la copia de seguridad de forma manual.
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura31}
+	\caption{Seleccionamos que queremos una configuración personal (custom)}
+	\label{fig:figura31}
+	\end{figure}
+
+	Ahora llegaremos a una ventana en la que ya añadiremos los ficheros que queremos guardar en nuestra copia de seguridad. Hacemos click en Add Items y seleccionamos la opción System State (ver figura 3.2). A continuación podemos elegir con qué frecuencia queremos que nuestro sistema haga backups del registro. Elegimos la frecuencia deseada (ver figura  3.3).
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura32}
+	\caption{Seleccionamos que queremos hacer backup del estado del sistema}
+	\label{fig:figura32}
+	\end{figure}
+
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura33}
+	\caption{Seleccionamos frecuencia con la que queremos que se haga backup}
+	\label{fig:figura33}
+	\end{figure}
+	
+	\newpage
+	
+	A continuación elegimos el destino en el que queremos que se guarde nuestra backup. Yo seleccionaré en una carpeta de uno de los discos duros. Después elegimos el dispositivo en el que queremos guardar nuestra copia de seguridad (ver figura 3.4) . Finalmente clickamos en Finalizar.
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura34}
+	\caption{Seleccionamos ubicación de la copia de seguridad}
+	\label{fig:figura34}
+	\end{figure}
+
+	Con estos pasos habremos creado una planificación de copias de seguridad con cierta frecuencia. Para realizar una simple copia de seguridad vamos a Action->Backup once. Elegimos que queremos realizar la copia de seguridad según las opciones que ya hemos seleccionado al crear la planificación de copia de seguridad y finalmente hacemos click sobre Backup y se nos realizará la copia de seguridad. Después de esperar un rato se habrá creado ya la copia de seguridad.
+	\\
+	
+	Para reestablecer un registro anterior, mediante también el programa Windows Server Backup clickamos en Action->Recover. Se nos aparecerá una ventana y nos preguntará que de dónde queremos cargar el backup. Seleccionamos la opción ‘A backup store on another location’ (ver figura 3.5). Pulsamos en siguiente y nos preguntará sobre el tipo de localización del backup (Discos locales) y cual es la localización concreta (el disco donde hemos guardado el backup). Después deberemos escoger la fecha del backup que hicimos (si solo tenemos uno nos saldrá por defecto). Ver figura 3.6. Pulsamos en siguiente y escogemos que sólo queremos restaurar el ‘System State’. Pulsamos en siguiente y ya podremos iniciar la recuperación y posteriormente deberemos reiniciar el sistema.
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura35}
+	\caption{Indicamos que la copia de seguridad está en otra localización}
+	\label{fig:figura35}
+	\end{figure}
+
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura36}
+	\caption{Seleccionamos la fecha y hora del backup que deseamos restaurar}
+	\label{fig:figura36}
+	\end{figure}
+
+	\section{Cuestión 4: Abrir consola en Windows y modificar un registro}
+	Para abrir la consola en Windows Server podemos hacerlo de la siguiente manera:
+	\\
+	
+	Vamos al menú inicio y a All Programs->Accesories y abrimos el programa Run ( ejecutar si fuese en español). Una vez abierto tecleamos cmd y ejecutamos. Nos aparecerá ya la consola. Ver figura 4.1 y 4.2.
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura41}
+	\caption{Abrimos Run}
+	\label{fig:figura41}
+	\end{figure}
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura42}
+	\caption{Después de ejecutar cmd ya tenemos nuestra consola de comandos}
+	\label{fig:figura42}
+	\end{figure}
+	
+	Para editar el registro podemos usar el comando REG. Un ejemplo es el de la figura 4.3 donde añado una nueva clave o valor mediante ‘REG ADD’ y como vemos en regedit, ésta aparece añadida.
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura43}
+	\caption{Ejemplo de edición del registro}
+	\label{fig:figura43}
+	\end{figure}
+	
+	\section{Cuestión 5: Tipos de los caracteres y valores numéricos del registro de Windows}
+	Los distintos tipos \footnote{https://support.microsoft.com/es-es/kb/256986} de datos que podemos encontrar son:
+	
+	\begin{itemize}
+	\item Valor binario [REG\_BINARY]: datos binarios sin formato. Información de componentes hardware.
+	\item Valor DWORD [REG\_DWORD]: 4 bytes de longitud. Pueden representar a parámetros de controladores de dispositivos y servicios.
+	\item Valor alfanumérico expandible [REG\_EXPAND\_SZ]: Son cadenas de datos con una longitud variable.
+	\item Valor de cadena múltiple [REG\_MULTI\_SZ]: Cadena múltiple. Pueden contener listas o valores múltiples. 
+	\item Valor de cadena [REG\_SZ]: Son cadenas de texto con longitud fija.
+	\item Valor binario [REG\_RESOURCE\_LIST]:  Son matrices anidadas que se usan para para por ejemplo almacenar listas de recursos utilizados por el controlador de un dispositivo.
+	\item Valor binario [REG\_RESOURCE\_REQUIREMENTS\_LIST]: También una serie de matrices anidadas que se utiliza para almacenar recursos utilizados por controladores.
+	\item Valor binario [REG\_FULL\_RESOURCE\_DESCRIPTOR]: Misma composición y misma función que las 2 anteriores.
+	\item Ninguna [REG\_NONE]: Datos sin ningún tipo en particular.
+	\item Vínculo [REG\_LINK]: Cadena Unicode que da nombre a un vínculo simbólico.
+	\item Valor QWORD [REG\_QWORD]: Datos representados por un número entero de 64 bytes.
+	\end{itemize}
+	
+	\section{Cuestión 6: Mejoras apache e IIS para Moodle}
+	Los elementos configurables \footnote{http://docs.moodle.org/23/en/Performance\_recommendations}
+ que podemos tener en cuenta para que Moodle funcione mejor son los siguientes:
+ \\
+ 
+	
+	En un servidor Apache:
+	\begin{itemize}
+	\item Ajustar el parámetro “MaxClients” en función de la memoria total disponible en nuestro equipo.
+	\item Cargar el mínimo número posible de módulos para reducir la memoria necesaria.
+	\item Utilizar la última versión de Apache porque reduce el uso de memoria.
+	\item Reducir a un mínimo valor de 20-30 el parámetro “MaxRequestPerChild”, para que la bifurcación de procesos no genere una mayor sobrecarga en vez de beneficio en el rendimiento.
+	\item Establecer el parámetro “KeepAlive” a Off o bajar el valor de “KeepAliveTimeout” a un valor de 2-5, evitando así sobrecarga del procesador en el inicio de proesos.
+	\item En lugar de la anterior, podemos crear un servidor proxy inverso delante del servidor de Moodle para almacenar en caché los archivos HTML con imágenes.
+	\item Si no utilizamos un archivo “.htaccess” establecer “AllowOverride” a None para no tener que buscar dichos archivos.
+	\item Establecer correctamente “DirectoryIndex” para evitar negociación de contenido indicando el archivo de índice que debe ser cargado.
+	\item Configurar “ExtendedStatus” a Off y desactivar “mod\_info” y “mod\_status” si no vamos a hacer trabajo de desarrollo en el servidor.
+	\item No cambiar “HostnameLookups” de Off para reducir la latencia de DNS.
+	\item Reducir “TimeOut” a 30-60 segundos.
+	\item En las directivas “Options”, evitar “Options MultiViews” para reducir el uso de entrada/salida en disco.
+	\end{itemize}
+	
+	En un servidor ISS:
+	\begin{itemize}
+	\item Ajustar a 2-5 el valor de “ListenBacklog”.
+	\item Cambiar el “MemCacheSize” para ajustar la memoria que se usará como caché de archivos.
+	\item Cambiar “MaxCachedFileSize” para ajustar el tamaño máximo de un archivo en la caché de archivos.
+	\item Crear un valor DWORD llamado “ObjectCacheTTL” para cambiar la cantidad de tiempo (en milisegundos) que los objetos de la caché se mantienen en la memoria.
+	\end{itemize}
+	
+	\section{Cuestión 7: Ajuste compresión en IIS}
+	Lo primero que hacemos \footnote{https://technet.microsoft.com/en-us/library/cc771003(v=ws.10).aspx} es abrir IIS. Seleccionamos nuestro servidor en la ventana de la izquierda y hacemos click en Compresión (Ver figura 7.1).
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura71}
+	\caption{Seleccionamos compresión}
+	\label{fig:figura71}
+	\end{figure}
+
+
+Para activar la compresión tenemos que marcar las dos pestañas que hay para activar tanto la compresión de páginas dinámicas como de páginas estáticas. Después configuramos cuál queremos que sea el tamaño mínimo del html a partir del cual se comprimirá. En mi caso he puesto 20 bytes para que así se pueda comprobar más fácilmente que funciona. Después seleccionaremos en qué carpeta queremos que se creen los ficheros html comprimidos de forma temporal (en mi caso la de por defecto) y opcionalmente podremos elegir el tamaño máximo que queremos que IIS use para comprimir contenidos estáticos para nuestro sitio web. Ver figura 7.2. Finalmente pulsamos en aplicar.
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura72}
+	\caption{Configuramos la compresión}
+	\label{fig:figura72}
+	\end{figure}
+A continuación reiniciamos nuestro servidor web y seguidamente comprobaremos que efectivamente funciona la compresión. Para ello usaremos la herramienta para desarrolladores de Google Chrome desde la máquina host (ver figura 7.3).
+Se nos abrirá en la parte inferior de la ventana una especie de consola. A continuación introducimos en la barra de dirección el sitio web y accedemos (figura 7.4).
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura73}
+	\caption{Abrimos las herramientas para desarrolladores en Chrome}
+	\label{fig:figura73}
+	\end{figure}
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figua74}
+	\caption{Resultado de abrir nuestro sitio web con la herramienta para desarrolladores}
+	\label{fig:figura74}
+	\end{figure}
+
+Como vemos en la figura 7.5, hemos recibido el html indexa.html. Si clickamos sobre él podemos ver las cabeceras de las solicitudes y respuestas. Exploramos la cabecera de Response y como vemos en la figura 7.6 hemos recibido la ‘notificación’ de que el mensaje irá codificado en gzip y que pesará unos 363 bytes (sin comprimir pesa unos 5.75 kB).
+
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura75}
+	\caption{Comprobamos que funciona la compresión}
+	\label{fig:figura75}
+	\end{figure}
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura76}
+	\caption{Comprobamos que funciona la compresión 2}
+	\label{fig:figura76}
+	\end{figure}
+	
+	\section{Cuestión 8: Mejora de un servicio y monitorización del mismo}
+	Mi mejora será sobre mi servidor web IIS 7.0 \footnote{https://technet.microsoft.com/es-es/library/cc754957(v=ws.10).aspx} \footnote{https://technet.microsoft.com/en-us/library/cc770381(v=ws.10).aspx}. Lo que haré es activar la compresión de los html y habilitar el ‘output caching’, que se trata de que cuando el servidor envía el html al cliente, se guarda en la memoria del servidor de manera que en la próxima solicitud no se tendrá que reprocesar el html. Hacemos el benchmark sin ninguna de estas dos mejoras activas.
+	En las figuras 8.1 y 8.2 podemos ver los resultados de ejecutar apache benchmark sobre nuestro sitio web
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura81}
+	\caption{Ejecución ab sobre nuestro servidor IIS sin mejoras (1)}
+	\label{fig:figura81}
+	\end{figure}
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura82}
+	\caption{Ejecución ab sobre nuestro servidor IIS sin mejoras (2)}
+	\label{fig:figura82}
+	\end{figure}
+
+	Para activar la compresión seguimos los pasos del ejercicio 7. Para activar el ‘output caching’ tenemos que hacer click sobre nuestro servidor dentro de IIS y seleccionamos ‘output caching’ (ver figura 8.3). 
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura83}
+	\caption{Configuramos el output caching}
+	\label{fig:figura83}
+	\end{figure}
+	
+	Aquí dentro en la ventana de Actions hacemos click en ‘Edit Feature Settings…’. Se nos abrirá una ventana en la cual activaremos la cache y opcionalmente podemos modificar algunos parámetros como el tamaño máximo de respuesta que guardaremos en caché y el tamaño máximo de la caché (yo lo dejaré por defecto). Ver figura 8.4. 
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura84}
+	\caption{Configuración del output caching}
+	\label{fig:figura84}
+	\end{figure}
+
+	Reiniciamos nuestro sitio web y volvemos a ejecutar ab sobre él. Como vemos en las figuras 8.5 y 8.6 después de las mejoras notamos cierta mejoría en el tiempo.
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura85}
+	\caption{Ejecución ab sobre nuestro servidor IIS con las mejoras (1)}
+	\label{fig:figura85}
+	\end{figure}
+	
+	\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{capturas/figura86}
+	\caption{Ejecución ab sobre nuestro servidor IIS con las mejoras (2)}
+	\label{fig:figura86}
+	\end{figure}
+
+	
+\end{document}
